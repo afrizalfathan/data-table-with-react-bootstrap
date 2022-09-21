@@ -17,7 +17,7 @@ function App() {
     const [show, setShow] = useState(false);
     const [tambah, setTambah] = useState("Tambah Data");
     const [validated, setValidated] = useState(false);
-    console.log("ASDASD");
+    const [errors, setErrors] = useState({});
 
     const handleShow = () => setShow(true);
     const handleClose = () => setShow(false);
@@ -31,6 +31,19 @@ function App() {
         setMahasiswa(filteredSiswa);
     }
 
+    // fungsi untuk memasukan data dalam field untuk pengecekan form
+    function findFormErrors() {
+        const newErrors = {};
+        if (!nama || nama === "") newErrors.nama = "Nama tidak boleh kosong!";
+        if (!npm || npm === "") newErrors.npm = "NPM tidak boleh kosong!";
+        if (!telepon || telepon === "")
+            newErrors.telepon = "Telepon tidak boleh kosong!";
+        if (!alamat || alamat === "")
+            newErrors.alamat = "Alamat tidak boleh kosong!";
+
+        return newErrors;
+    }
+
     // Fungsi untuk mengerate data key
     function generateKey() {
         return Date.now();
@@ -38,50 +51,53 @@ function App() {
 
     //fungsi menyimpan data
     function saveData(e) {
-        const form = e.currentTarget;
-        if (form.checkValidity() === false) {
-            e.preventDefault();
-            e.stopPropagation();
+        e.preventDefault();
+        const newErrors = findFormErrors();
+
+        // kondisi jika suatu form kosong
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            return;
+        } else {
+            setValidated(true);
+            if (edit.id) {
+                const newData = {
+                    id: edit.id,
+                    nama,
+                    npm,
+                    alamat,
+                    telepon,
+                };
+
+                const editSiswaIndex = mahasiswa.findIndex(
+                    (siswa) => siswa.id === edit.id
+                );
+
+                const updatedData = [...mahasiswa];
+
+                updatedData[editSiswaIndex] = newData;
+                setMahasiswa(updatedData);
+
+                return cancelEditHandler();
+            }
+
+            setMahasiswa([
+                ...mahasiswa,
+                {
+                    id: generateKey(),
+                    nama,
+                    npm,
+                    alamat,
+                    telepon,
+                },
+            ]);
+            setTambah("Tambah Data");
+            setNama("");
+            setNpm("");
+            setAlamat("");
+            setTelepon("");
+            handleClose();
         }
-
-        setValidated(true);
-        if (edit.id) {
-            const newData = {
-                id: edit.id,
-                nama,
-                npm,
-                alamat,
-                telepon,
-            };
-
-            const editSiswaIndex = mahasiswa.findIndex(
-                (siswa) => siswa.id === edit.id
-            );
-
-            const updatedData = [...mahasiswa];
-
-            updatedData[editSiswaIndex] = newData;
-            setMahasiswa(updatedData);
-
-            return cancelEditHandler();
-        }
-
-        setMahasiswa([
-            ...mahasiswa,
-            {
-                id: generateKey(),
-                nama,
-                npm,
-                alamat,
-                telepon,
-            },
-        ]);
-        setTambah("Tambah Data");
-        setNama("");
-        setNpm("");
-        setAlamat("");
-        setTelepon("");
-        handleClose();
     }
 
     // fungsi jika tombol tambah diklik
